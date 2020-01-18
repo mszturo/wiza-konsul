@@ -1,10 +1,11 @@
-package models
+package repositories
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
+import models.Person
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * A repository for people.
