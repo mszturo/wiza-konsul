@@ -1,6 +1,15 @@
 package models
 
+import models.db.PlacowkaRow
+
 class Placowka(
+  var id: Long,
   var nazwa: String,
-  maksSprawZagregowanych: Int
-)
+  var maksSprawZagregowanych: Int
+){
+  def toRow: PlacowkaRow = PlacowkaRow(
+    id,
+    nazwa,
+    maksSprawZagregowanych
+  )
+}
