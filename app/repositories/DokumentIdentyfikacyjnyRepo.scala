@@ -5,7 +5,7 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import models.DokumentIdentyfikacyjny
 import models.db.DokumentIdentyfikacyjnyRow
-import play.api.db.slick.{DbName, SlickApi}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,15 +13,15 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class DokumentIdentyfikacyjnyRepo @Inject()
   (val tdRepo: TypDokumentuRepo)
-  (slickApi: SlickApi, dbName: DbName)
+    (dbConfigProvider: DatabaseConfigProvider)
   (implicit ec: ExecutionContext)
   extends Repository [DokumentIdentyfikacyjny] {
-  private[repositories] val dbConfig = slickApi.dbConfig[JdbcProfile](dbName)
+  private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
   import profile.api._
 
-  private[repositories] class DokumentIdentyfikacyjnyTable(tag: Tag) extends Table[DokumentIdentyfikacyjnyRow](tag, "typ_dokumentu") {
+  private[repositories] class DokumentIdentyfikacyjnyTable(tag: Tag) extends Table[DokumentIdentyfikacyjnyRow](tag, "dokumenty_identyfikacyjne") {
 
     def id = column[Long]("id")
 
@@ -34,8 +34,8 @@ class DokumentIdentyfikacyjnyRepo @Inject()
     def * = (id, nrDokumentu, typDokumentuId) <> (DokumentIdentyfikacyjnyRow.tupled, DokumentIdentyfikacyjnyRow.unapply)
   }
 
-  private[repositories] val dokumentyIdentfikacyjne = TableQuery[DokumentIdentyfikacyjnyTable]
-  private[repositories] val typyDokumentu = tdRepo.typyDokumentu
+  private[repositories] lazy val dokumentyIdentfikacyjne = TableQuery[DokumentIdentyfikacyjnyTable]
+  private[repositories] lazy val typyDokumentu = tdRepo.typyDokumentu
 
   def upsert(entity: DokumentIdentyfikacyjny): Future[Boolean] = db.run {
     dokumentyIdentfikacyjne

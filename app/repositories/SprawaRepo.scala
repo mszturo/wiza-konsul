@@ -6,7 +6,7 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import models.db.SprawaRow
 import models.{Kierownik, Sprawa}
-import play.api.db.slick.{DbName, SlickApi}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,15 +15,15 @@ import scala.concurrent.{ExecutionContext, Future}
 class SprawaRepo @Inject()(
   val dRepo: DecyzjaRepo,
   val doRepo: DaneOsoboweRepo)
-  (slickApi: SlickApi, dbName: DbName)
+  (dbConfigProvider: DatabaseConfigProvider)
   (implicit ec: ExecutionContext)
   extends Repository[Sprawa] {
-  private[repositories] val dbConfig = slickApi.dbConfig[JdbcProfile](dbName)
+  private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
   import profile.api._
 
-  private[repositories] class SprawaTable(tag: Tag) extends Table[SprawaRow](tag, "dane_osobowe") {
+  private[repositories] class SprawaTable(tag: Tag) extends Table[SprawaRow](tag, "sprawy") {
 
     def id = column[Long]("id")
 
@@ -57,12 +57,12 @@ class SprawaRepo @Inject()(
     def * = (id, zdjecie, trescSprawy, identyfikator, dataUtworzenia, czyWyslana, daneOsoboweId, aktualnaDecyzjaId, czyZakonczona, przesylkaId) <> (SprawaRow.tupled, SprawaRow.unapply)
   }
 
-  private[repositories] val sprawy = TableQuery[SprawaTable]
-  private[repositories] val dokumentyIdentfikacyjne = doRepo.dokumentyIdentfikacyjne
-  private[repositories] val daneOsobowe = doRepo.daneOsobowe
-  private[repositories] val pracownicy = dRepo.pracownicy
-  private[repositories] val typyDokumentu = doRepo.typyDokumentu
-  private[repositories] val decyzje = dRepo.decyzje
+  private[repositories] lazy val sprawy = TableQuery[SprawaTable]
+  private[repositories] lazy val dokumentyIdentyfikacyjne = doRepo.dokumentyIdentyfikacyjne
+  private[repositories] lazy val daneOsobowe = doRepo.daneOsobowe
+  private[repositories] lazy val pracownicy = dRepo.pracownicy
+  private[repositories] lazy val typyDokumentu = doRepo.typyDokumentu
+  private[repositories] lazy val decyzje = dRepo.decyzje
 
   def upsert(entity: Sprawa): Future[Boolean] = db.run {
     sprawy
@@ -81,7 +81,7 @@ class SprawaRepo @Inject()(
     sprawy.filter(_.id === id)
       .join(daneOsobowe)
       .on(_.daneOsoboweId === _.id)
-      .join(dokumentyIdentfikacyjne)
+      .join(dokumentyIdentyfikacyjne)
       .on(_._2.dokumentIdentyfikacyjnyId === _.id)
       .join(typyDokumentu)
       .on(_._2.typDokumentuId === _.id)
@@ -100,27 +100,29 @@ class SprawaRepo @Inject()(
       })
   }
 
-  def list(): Future[util.List[Sprawa]] = db.run {
-    sprawy
-      .join(daneOsobowe)
-      .on(_.daneOsoboweId === _.id)
-      .join(dokumentyIdentfikacyjne)
-      .on(_._2.dokumentIdentyfikacyjnyId === _.id)
-      .join(typyDokumentu)
-      .on(_._2.typDokumentuId === _.id)
-      .join(decyzje)
-      .on(_._1._1._1.aktualnaDecyzjaId === _.id)
-      .join(pracownicy)
-      .on(_._2.wydajacyId === _.id)
-      .result
-      .map(_.flatMap {
-        case (((((s, dO), di), td), d), p) =>
-          p.toEntity match {
-            case k: Kierownik =>
-              Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.toEntity(k)))
-            case _ =>
-              None
-          }
-      })
+  def list(): Future[util.List[Sprawa]] = {
+    db.run {
+      sprawy
+        .join(daneOsobowe)
+        .on(_.daneOsoboweId === _.id)
+        .join(dokumentyIdentyfikacyjne)
+        .on(_._2.dokumentIdentyfikacyjnyId === _.id)
+        .join(typyDokumentu)
+        .on(_._2.typDokumentuId === _.id)
+        .join(decyzje)
+        .on(_._1._1._1.aktualnaDecyzjaId === _.id)
+        .join(pracownicy)
+        .on(_._2.wydajacyId === _.id)
+        .result
+        .map(_.flatMap {
+          case (((((s, dO), di), td), d), p) =>
+            p.toEntity match {
+              case k: Kierownik =>
+                Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.toEntity(k)))
+              case _ =>
+                None
+            }
+        })
+    }
   }
 }

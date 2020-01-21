@@ -6,7 +6,7 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import models.db.PrzesylkaRow
 import models.{Kierownik, Przesylka}
-import play.api.db.slick.{DbName, SlickApi}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -17,21 +17,21 @@ class PrzesylkaRepo @Inject()
 (val sRepo: SprawaRepo,
   val pRepo: PlacowkaRepo,
   val doRepo: DaneOsoboweRepo)
-  (slickApi: SlickApi, dbName: DbName)
+  (dbConfigProvider: DatabaseConfigProvider)
   (implicit ec: ExecutionContext)
   extends Repository[Przesylka] {
-  private[repositories] val dbConfig = slickApi.dbConfig[JdbcProfile](dbName)
+  private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
   import profile.api._
 
-  private[repositories] class PrzesylkaTable(tag: Tag) extends Table[PrzesylkaRow](tag, "typ_dokumentu") {
+  private[repositories] class PrzesylkaTable(tag: Tag) extends Table[PrzesylkaRow](tag, "przesylki") {
 
     def id = column[Long]("id")
 
     def dataPrzeslania = column[Timestamp]("data_przeslania")
 
-    def placowkaId = column[Long]("typ_dokumentu")
+    def placowkaId = column[Long]("placowka")
 
     def placowka =
       foreignKey("P_ID", placowkaId, placowki)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
@@ -39,14 +39,14 @@ class PrzesylkaRepo @Inject()
     def * = (id, dataPrzeslania, placowkaId) <> (PrzesylkaRow.tupled, PrzesylkaRow.unapply)
   }
 
-  private[repositories] val przesylki = TableQuery[PrzesylkaTable]
-  private[repositories] val placowki = pRepo.placowki
-  private[repositories] val sprawy = sRepo.sprawy
-  private[repositories] val decyzje = sRepo.decyzje
-  private[repositories] val pracownicy = sRepo.pracownicy
-  private[repositories] val daneOsobowe = doRepo.daneOsobowe
-  private[repositories] val dokumentyIdentyfikacyjne = doRepo.dokumentyIdentfikacyjne
-  private[repositories] val typyDokumentu = doRepo.typyDokumentu
+  private[repositories] lazy val daneOsobowe = doRepo.daneOsobowe
+  private[repositories] lazy val decyzje = sRepo.decyzje
+  private[repositories] lazy val dokumentyIdentyfikacyjne = doRepo.dokumentyIdentyfikacyjne
+  private[repositories] lazy val placowki = pRepo.placowki
+  private[repositories] lazy val pracownicy = sRepo.pracownicy
+  private[repositories] lazy val przesylki = TableQuery[PrzesylkaTable]
+  private[repositories] lazy val sprawy = sRepo.sprawy
+  private[repositories] lazy val typyDokumentu = doRepo.typyDokumentu
 
   def upsert(entity: Przesylka): Future[Boolean] = db.run {
     przesylki

@@ -5,22 +5,22 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import models.TypDokumentu
 import models.db.TypDokumentuRow
-import play.api.db.slick.{DbName, SlickApi}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TypDokumentuRepo @Inject()
-(slickApi: SlickApi, dbName: DbName)
+(dbConfigProvider: DatabaseConfigProvider)
   (implicit ec: ExecutionContext)
   extends Repository[TypDokumentu] {
-  private[repositories] val dbConfig = slickApi.dbConfig[JdbcProfile](dbName)
+  private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
   import profile.api._
 
-  private[repositories] class TypDokumentuTable(tag: Tag) extends Table[TypDokumentuRow](tag, "typ_dokumentu") {
+  private[repositories] class TypDokumentuTable(tag: Tag) extends Table[TypDokumentuRow](tag, "typy_dokumentu") {
 
     def id = column[Long]("id")
 
@@ -55,6 +55,6 @@ class TypDokumentuRepo @Inject()
       .map(_.map(_.toEntity))
   }
 
-  private[repositories] val typyDokumentu = TableQuery[TypDokumentuTable]
+  private[repositories] lazy val typyDokumentu = TableQuery[TypDokumentuTable]
 
 }
