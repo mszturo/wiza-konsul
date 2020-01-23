@@ -5,22 +5,21 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import models.Pracownik
 import models.db.PracownikRow
-import play.api.db.slick.{DbName, SlickApi}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PracownikRepo @Inject()
-(slickApi: SlickApi, dbName: DbName)
+(dbConfigProvider: DatabaseConfigProvider)
   (implicit ec: ExecutionContext)
   extends Repository[Pracownik] {
-  private[repositories] val dbConfig = slickApi.dbConfig[JdbcProfile](dbName)
-
+  private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
   import dbConfig._
   import profile.api._
 
-  private[repositories] class PracownikTable(tag: Tag) extends Table[PracownikRow](tag, "typ_dokumentu") {
+  private[repositories] class PracownikTable(tag: Tag) extends Table[PracownikRow](tag, "pracownicy") {
 
     def id = column[Long]("id")
 
@@ -33,7 +32,7 @@ class PracownikRepo @Inject()
     def * = (id, login, haslo, czyKierownik) <> (PracownikRow.tupled, PracownikRow.unapply)
   }
 
-  private[repositories] val pracownicy = TableQuery[PracownikTable]
+  private[repositories] lazy val pracownicy = TableQuery[PracownikTable]
 
   def upsert(entity: Pracownik): Future[Boolean] = db.run {
     pracownicy

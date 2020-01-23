@@ -7,7 +7,7 @@ import javax.inject.{Inject, Singleton}
 import models.RodzajDecyzji.RodzajDecyzji
 import models.db.DecyzjaRow
 import models.{Decyzja, Kierownik}
-import play.api.db.slick.{DbName, SlickApi}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,15 +15,15 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class DecyzjaRepo @Inject()
 (val pRepo: PracownikRepo)
-  (slickApi: SlickApi, dbName: DbName)
+  (dbConfigProvider: DatabaseConfigProvider)
   (implicit ec: ExecutionContext)
   extends Repository[Decyzja] {
-  private[repositories] val dbConfig = slickApi.dbConfig[JdbcProfile](dbName)
+  private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   import dbConfig._
   import profile.api._
 
-  private[repositories] class DecyzjaTable(tag: Tag) extends Table[DecyzjaRow](tag, "typ_dokumentu") {
+  private[repositories] class DecyzjaTable(tag: Tag) extends Table[DecyzjaRow](tag, "decyzje") {
 
     def id = column[Long]("id")
 
@@ -41,8 +41,8 @@ class DecyzjaRepo @Inject()
     def * = (id, dataDecyzji, uzasadnienie, wydajacyId, rodzajDecyzji) <> (DecyzjaRow.tupled, DecyzjaRow.unapply)
   }
 
-  private[repositories] val decyzje = TableQuery[DecyzjaTable]
-  private[repositories] val pracownicy = pRepo.pracownicy
+  private[repositories] lazy val decyzje = TableQuery[DecyzjaTable]
+  private[repositories] lazy val pracownicy = pRepo.pracownicy
 
   def upsert(entity: Decyzja): Future[Boolean] = db.run {
     decyzje
