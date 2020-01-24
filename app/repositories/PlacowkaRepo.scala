@@ -5,22 +5,21 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import models.Placowka
 import models.db.PlacowkaRow
-import play.api.db.slick.{DbName, SlickApi}
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PlacowkaRepo @Inject()
-(slickApi: SlickApi, dbName: DbName)
+(dbConfigProvider: DatabaseConfigProvider)
   (implicit ec: ExecutionContext)
   extends Repository[Placowka] {
-  private[repositories] val dbConfig = slickApi.dbConfig[JdbcProfile](dbName)
-
+  private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
   import dbConfig._
   import profile.api._
 
-  private[repositories] class PlacowkaTable(tag: Tag) extends Table[PlacowkaRow](tag, "typ_dokumentu") {
+  private[repositories] class PlacowkaTable(tag: Tag) extends Table[PlacowkaRow](tag, "placowki") {
 
     def id = column[Long]("id")
 
@@ -57,6 +56,5 @@ class PlacowkaRepo @Inject()
       .map(_.map(_.toEntity))
   }
 
-  private[repositories] val placowki = TableQuery[PlacowkaTable]
-
+  private[repositories] lazy val placowki = TableQuery[PlacowkaTable]
 }
