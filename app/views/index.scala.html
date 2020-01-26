@@ -1,0 +1,21 @@
+@(loginForm:play.data.Form[controllers.data.LoginData])(implicit request: Http.Request, messages: play.i18n.Messages)
+
+@import helper._
+
+@layout("Zaloguj się") {
+    <h1>Zaloguj się do systemu</h1>
+    @if(loginForm.hasGlobalErrors) {
+        <ul>
+        @for(error <- loginForm.globalErrors) {
+            <li>@error.message</li>
+        }
+        </ul>
+    }
+
+    @form(action=routes.HomeController.zaloguj) {
+        @CSRF.formField
+        @inputText(loginForm("login"), Symbol("class") -> "form-control", Symbol("_label") -> "Login")
+        @inputPassword(loginForm("haslo"), Symbol("class") -> "form-control", Symbol("_label") -> "Hasło")
+        <button class="btn btn-success">Zaloguj</button>
+    }
+}

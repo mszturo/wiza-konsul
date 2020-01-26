@@ -1,0 +1,30 @@
+@(sprawaForm:play.data.Form[controllers.data.SprawaData])(implicit request: Http.Request, messages: play.i18n.Messages)
+
+@import helper._
+
+@layout("Dodaj sprawę") {
+    @if(sprawaForm.hasGlobalErrors) {
+        <ul>
+            @for(error <- sprawaForm.globalErrors) {
+                <li>@error.message</li>
+            }
+        </ul>
+    }
+
+    @form(action=routes.HomeController.zapiszSprawe) {
+        @CSRF.formField
+        <h2>Dane składającego</h2>
+        @inputText(sprawaForm("imie"), Symbol("class") -> "form-control", Symbol("_label") -> "Imię")
+        @inputText(sprawaForm("drugieImie"), Symbol("class") -> "form-control", Symbol("_label") -> "Drugie imię")
+        @inputText(sprawaForm("nazwisko"), Symbol("class") -> "form-control", Symbol("_label") -> "Nazwisko")
+        @inputDate(sprawaForm("dataUrodzenia"), Symbol("class") -> "form-control", Symbol("_label") -> "Data urodzenia")
+        @inputText(sprawaForm("miejsceUrodzenia"), Symbol("class") -> "form-control", Symbol("_label") -> "Miejsce urodzenia")
+        @inputText(sprawaForm("PESEL"), Symbol("class") -> "form-control", Symbol("_label") -> "PESEL")
+        @inputText(sprawaForm("nrDokumentuIdentyfikacyjnego"), Symbol("class") -> "form-control", Symbol("_label") -> "Numer dokumentu identyfikacyjnego")
+
+        <h2>Dane sprawy</h2>
+        @textarea(sprawaForm("trescSprawy"), Symbol("class") -> "form-control", Symbol("_label") -> "Treść sprawy")
+
+        <button class="btn btn-success">Dodaj</button>
+    }
+}

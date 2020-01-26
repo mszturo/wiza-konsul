@@ -1,0 +1,21 @@
+@(decyzjaForm:play.data.Form[controllers.data.DecyzjaData])(sprawa: models.Sprawa)(implicit request: Http.Request, messages: play.i18n.Messages)
+
+@import helper._
+
+@layout("Wydaj decyzję") {
+    @if(decyzjaForm.hasGlobalErrors) {
+    <ul>
+        @for(error <- decyzjaForm.globalErrors) {
+            <li>@error.message</li>
+        }
+    </ul>
+    }
+
+    @form(action=routes.HomeController.zapiszDecyzje) {
+        @CSRF.formField
+
+        @textarea(decyzjaForm("uzasadnienieDecyzji"), Symbol("class") -> "form-control", Symbol("_label") -> "Uzasadnienie decyzji")
+
+        <button class="btn btn-success">Wyślij</button>
+    }
+}

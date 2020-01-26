@@ -2,6 +2,7 @@ package services;
 
 import models.*;
 import repositories.*;
+import scala.Option;
 import scala.concurrent.ExecutionContext;
 
 import javax.inject.Inject;
@@ -32,10 +33,16 @@ public class SprawaService {
         sprawaRepo.upsert(sprawa);
     }
 
-    public Sprawa getSprawa(int id) {
+    public Option<Sprawa> getSprawa(int id) {
         List<Sprawa> sprawy = new ArrayList<>();
         sprawaRepo.get(id).map(val -> sprawy.add(val.get()), ExecutionContext.Implicits$.MODULE$.global());
-        return sprawy.get(0);
+        return sprawy.size() == 0 ? Option.empty() : Option.apply(sprawy.get(0));
+    }
+
+    public void usunSprawe(int id) {
+        Option<Sprawa> sprawa = getSprawa(id);
+        if(!sprawa.isEmpty())
+            sprawaRepo.delete(sprawa.get());
     }
 
     public List<Sprawa> getSprawy() {
