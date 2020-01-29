@@ -24,7 +24,7 @@ class DaneOsoboweRepo @Inject()(
 
   private[repositories] class DaneOsoboweTable(tag: Tag) extends Table[DaneOsoboweRow](tag, "dane_osobowe") {
 
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def imie = column[String]("imie")
 

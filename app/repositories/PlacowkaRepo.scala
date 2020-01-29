@@ -21,7 +21,7 @@ class PlacowkaRepo @Inject()
 
   private[repositories] class PlacowkaTable(tag: Tag) extends Table[PlacowkaRow](tag, "placowki") {
 
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def nazwa = column[String]("nazwa")
 

@@ -24,7 +24,7 @@ class SprawaRepo @Inject()(
 
   private[repositories] class SprawaTable(tag: Tag) extends Table[SprawaRow](tag, "sprawy") {
 
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def zdjecie = column[String]("zdjecie")
 

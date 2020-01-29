@@ -12,7 +12,7 @@ GET     /sprawy/edytuj/:id          controllers.HomeController.edytujSprawe(id: 
 GET     /sprawy/wydajDecyzje/:id    controllers.HomeController.wydajDecyzje(request: play.mvc.Http.Request, id: Integer)
 PUT     /sprawy/aktualizuj          controllers.HomeController.aktualizujSprawe()
 POST    /login                      controllers.HomeController.zaloguj(request: play.mvc.Http.Request)
-POST    /sprawy/zapiszDecyzje       controllers.HomeController.zapiszDecyzje(request: play.mvc.Http.Request)
+POST    /sprawy/zapiszDecyzje       controllers.HomeController.zapiszDecyzje(request: play.mvc.Http.Request, sprawaId: Long)
 POST    /sprawy/zapiszSprawe        controllers.HomeController.zapiszSprawe(request: play.mvc.Http.Request)
 DELETE  /sprawy/usunSprawe/:id      controllers.HomeController.usunSprawe(id: Integer)
 

@@ -7,6 +7,8 @@ import models.Sprawa;
 import models.TypDokumentu;
 import repositories.TypDokumentuRepo;
 import scala.Option;
+import services.SprawaService;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 
@@ -14,31 +16,39 @@ import javax.inject.Inject;
 
 public class SprawaMapper {
 
-    public static Sprawa mapSprawa(SprawaData sprawaData) {
-        DokumentIdentyfikacyjny dokumentIdentyfikacyjny = new DokumentIdentyfikacyjny(1, sprawaData.getNumerDokumentuIdentyfikacyjnego(), null);
+    @Inject
+    private SprawaService sprawaService;
 
+    public Sprawa mapSprawa(SprawaData sprawaData) {
+        Option<TypDokumentu> typDokumentu = sprawaService.getTypDokumentu(Integer.parseInt(sprawaData.getTypDokumentu()));
 
-        DaneOsobowe daneOsobowe = new DaneOsobowe(
-                1,
-                sprawaData.getImie(),
-                sprawaData.getDrugieImie() == null ? Option.empty() : Option.apply(sprawaData.getDrugieImie()),
-                sprawaData.getNazwisko(),
-                sprawaData.getDataUrodzenia(),
-                sprawaData.getMiejsceUrodzenia(),
-                sprawaData.getPESEL(),
-                dokumentIdentyfikacyjny);
+        if(!typDokumentu.isEmpty()) {
+            DokumentIdentyfikacyjny dokumentIdentyfikacyjny = new DokumentIdentyfikacyjny(-1, sprawaData.getNumerDokumentuIdentyfikacyjnego(), typDokumentu.get());
 
-        Sprawa sprawa = new Sprawa(
-                1,
-                "",
-                sprawaData.getTrescSprawy(),
-                "",
-                new Timestamp(new java.util.Date().getTime()),
-                false,
-                daneOsobowe,
-                null,
-                false);
+            DaneOsobowe daneOsobowe = new DaneOsobowe(
+                    -1,
+                    sprawaData.getImie(),
+                    sprawaData.getDrugieImie() == null ? Option.empty() : Option.apply(sprawaData.getDrugieImie()),
+                    sprawaData.getNazwisko(),
+                    new java.sql.Date(sprawaData.getDataUrodzenia().getTime()),
+                    sprawaData.getMiejsceUrodzenia(),
+                    sprawaData.getPESEL(),
+                    dokumentIdentyfikacyjny);
 
-        return sprawa;
+            Sprawa sprawa = new Sprawa(
+                    -1,
+                    "",
+                    sprawaData.getTrescSprawy(),
+                    "",
+                    new Timestamp(new java.util.Date().getTime()),
+                    false,
+                    daneOsobowe,
+                    null,
+                    false);
+
+            return sprawa;
+        }
+
+        return null;
     }
 }

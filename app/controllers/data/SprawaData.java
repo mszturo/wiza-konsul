@@ -1,6 +1,9 @@
 package controllers.data;
 
-import java.sql.Date;
+import java.util.Date;
+
+import models.TypDokumentu;
+import play.api.data.format.Formats;
 import play.data.validation.Constraints;
 
 public class SprawaData {
@@ -28,6 +31,9 @@ public class SprawaData {
 
     @Constraints.Required
     private String numerDokumentuIdentyfikacyjnego;
+
+    @Constraints.Required
+    private String typDokumentu;
 
     @Constraints.Required
     private String trescSprawy;
@@ -94,5 +100,13 @@ public class SprawaData {
 
     public void setTrescSprawy(String trescSprawy) {
         this.trescSprawy = trescSprawy;
+    }
+
+    public String getTypDokumentu() {
+        return typDokumentu;
+    }
+
+    public void setTypDokumentu(String typDokumentu) {
+        this.typDokumentu = typDokumentu;
     }
 }

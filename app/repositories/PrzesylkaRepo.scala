@@ -26,7 +26,7 @@ class PrzesylkaRepo @Inject()
 
   private[repositories] class PrzesylkaTable(tag: Tag) extends Table[PrzesylkaRow](tag, "przesylki") {
 
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def dataPrzeslania = column[Timestamp]("data_przeslania")
 

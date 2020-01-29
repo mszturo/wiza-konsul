@@ -21,7 +21,7 @@ class PracownikRepo @Inject()
 
   private[repositories] class PracownikTable(tag: Tag) extends Table[PracownikRow](tag, "pracownicy") {
 
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def login = column[String]("login")
 

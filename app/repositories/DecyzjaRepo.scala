@@ -25,7 +25,7 @@ class DecyzjaRepo @Inject()
 
   private[repositories] class DecyzjaTable(tag: Tag) extends Table[DecyzjaRow](tag, "decyzje") {
 
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def dataDecyzji = column[Date]("data_decyzji")
 

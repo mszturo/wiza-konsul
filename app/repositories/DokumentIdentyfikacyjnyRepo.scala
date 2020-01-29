@@ -23,7 +23,7 @@ class DokumentIdentyfikacyjnyRepo @Inject()
 
   private[repositories] class DokumentIdentyfikacyjnyTable(tag: Tag) extends Table[DokumentIdentyfikacyjnyRow](tag, "dokumenty_identyfikacyjne") {
 
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def nrDokumentu = column[String]("nr_dokumentu")
 

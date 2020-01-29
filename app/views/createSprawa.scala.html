@@ -1,11 +1,11 @@
-@(sprawaForm:play.data.Form[controllers.data.SprawaData])(implicit request: Http.Request, messages: play.i18n.Messages)
+@(sprawaForm:play.data.Form[controllers.data.SprawaData])(typyDokumentow : Seq[TypDokumentu])(implicit request: Http.Request, messages: play.i18n.Messages)
 
 @import helper._
 
 @layout("Dodaj sprawę") {
-    @if(sprawaForm.hasGlobalErrors) {
+    @if(sprawaForm.hasErrors) {
         <ul>
-            @for(error <- sprawaForm.globalErrors) {
+            @for(error <- sprawaForm.errors) {
                 <li>@error.message</li>
             }
         </ul>
@@ -20,7 +20,8 @@
         @inputDate(sprawaForm("dataUrodzenia"), Symbol("class") -> "form-control", Symbol("_label") -> "Data urodzenia")
         @inputText(sprawaForm("miejsceUrodzenia"), Symbol("class") -> "form-control", Symbol("_label") -> "Miejsce urodzenia")
         @inputText(sprawaForm("PESEL"), Symbol("class") -> "form-control", Symbol("_label") -> "PESEL")
-        @inputText(sprawaForm("nrDokumentuIdentyfikacyjnego"), Symbol("class") -> "form-control", Symbol("_label") -> "Numer dokumentu identyfikacyjnego")
+        @inputText(sprawaForm("numerDokumentuIdentyfikacyjnego"), Symbol("class") -> "form-control", Symbol("_label") -> "Numer dokumentu identyfikacyjnego")
+        @select(sprawaForm("typDokumentu"), typyDokumentow.map(typ => typ.id.toString -> typ.nazwa), Symbol("class") -> "form-control", Symbol("_label") -> "Typ dokumentu")
 
         <h2>Dane sprawy</h2>
         @textarea(sprawaForm("trescSprawy"), Symbol("class") -> "form-control", Symbol("_label") -> "Treść sprawy")

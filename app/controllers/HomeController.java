@@ -6,7 +6,7 @@ import controllers.data.SprawaData;
 import mappers.SprawaMapper;
 import models.Pracownik;
 import models.Sprawa;
-import org.omg.CosNaming.NamingContextPackage.NotFound;
+import models.TypDokumentu;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.mvc.Controller;
@@ -16,11 +16,15 @@ import play.mvc.Http;
 import play.mvc.Result;
 import repositories.PrzesylkaRepo;
 import scala.Option;
+import scala.collection.JavaConverters;
+import scala.collection.immutable.Seq;
+import scala.jdk.CollectionConverters;
 import services.LoginService;
 import services.SprawaService;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.ArrayList;
 import java.util.List;
 
 @Singleton
@@ -31,7 +35,10 @@ public class HomeController extends Controller {
 
     @Inject
     private LoginService loginService;
-    
+
+    @Inject
+    private SprawaMapper sprawaMapper;
+
     private final Form<SprawaData> sprawaForm;
     private final Form<DecyzjaData> decyzjaForm;
     private final Form<LoginData> loginForm;
@@ -72,18 +79,24 @@ public class HomeController extends Controller {
 
     public Result dodajSprawe(Http.Request request) {
         Messages messages = messagesApi.preferred(request);
-        return ok(views.html.createSprawa.render(sprawaForm, request, messages));
+        List<TypDokumentu> typyDokumentow = sprawaService.getTypyDokumentow();
+        Seq<TypDokumentu> typy = CollectionConverters.IterableHasAsScala(typyDokumentow).asScala().toList();
+
+        return ok(views.html.createSprawa.render(sprawaForm, typy, request, messages));
     }
 
     public Result zapiszSprawe(Http.Request request) {
         final Form<SprawaData> form = sprawaForm.bindFromRequest(request);
 
         if(form.hasErrors()) {
-            return badRequest(views.html.createSprawa.render(form, request, messagesApi.preferred(request)));
+            List<TypDokumentu> typyDokumentow = sprawaService.getTypyDokumentow();
+            Seq<TypDokumentu> typy = CollectionConverters.IterableHasAsScala(typyDokumentow).asScala().toList();
+
+            return badRequest(views.html.createSprawa.render(form, typy, request, messagesApi.preferred(request)));
         }
 
         SprawaData sprawaData = form.get();
-        Sprawa sprawa = SprawaMapper.mapSprawa(sprawaData);
+        Sprawa sprawa = sprawaMapper.mapSprawa(sprawaData);
         sprawaService.dodajSprawe(sprawa);
 
         return redirect(routes.HomeController.pokazSprawy());
@@ -130,16 +143,23 @@ public class HomeController extends Controller {
         return ok(views.html.wydajDecyzje.render(decyzjaForm, sprawa.get(), request, messagesApi.preferred(request)));
     }
 
-    public Result zapiszDecyzje(Http.Request request) {
-//        final Form<DecyzjaData> form = decyzjaForm.bindFromRequest(request);
-//
-//        if(form.hasErrors()) {
-//            return badRequest(views.html.wydajDecyzje.render(form, request, messagesApi.preferred(request)));
-//        }
-//
-//        //sprawaService.dodajDecyzje();
-//
-//        return redirect(routes.HomeController.pokazSprawy());
-        return ok();
+    public Result zapiszDecyzje(Http.Request request, Long sprawaId) {
+        final Form<DecyzjaData> form = decyzjaForm.bindFromRequest(request);
+
+        if(form.hasErrors()) {
+            Option<Sprawa> sprawa = sprawaService.getSprawa(sprawaId.intValue());
+
+            if(sprawa.isEmpty())
+                return notFound();
+
+            return badRequest(views.html.wydajDecyzje.render(form, sprawa.get(), request, messagesApi.preferred(request)));
+        }
+
+        DecyzjaData decyzjaData = form.get();
+
+//        sprawaService.dodajDecyzje(sprawaId, decyzja);
+
+        return redirect(routes.HomeController.pokazSprawy());
+        //return ok();
     }
 }

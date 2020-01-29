@@ -11,9 +11,10 @@
     </ul>
     }
 
-    @form(action=routes.HomeController.zapiszDecyzje) {
+    @form(action=routes.HomeController.zapiszDecyzje(sprawa.id)) {
         @CSRF.formField
 
+        @inputRadioGroup(decyzjaForm("rodzajDecyzji"), Seq("Pozytywna" -> "Pozytywna", "Negatywna" -> "Negatywna", "Do uzupełnienia" -> "Do uzupełnienia"))
         @textarea(decyzjaForm("uzasadnienieDecyzji"), Symbol("class") -> "form-control", Symbol("_label") -> "Uzasadnienie decyzji")
 
         <button class="btn btn-success">Wyślij</button>

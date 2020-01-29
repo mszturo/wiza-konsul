@@ -21,7 +21,7 @@ class TypDokumentuRepo @Inject()
   import profile.api._
 
   private[repositories] class TypDokumentuTable(tag: Tag) extends Table[TypDokumentuRow](tag, "typy_dokumentu") {
-    def id = column[Long]("id")
+    def id = column[Long]("id", O.PrimaryKey)
 
     def nazwa = column[String]("name")
 

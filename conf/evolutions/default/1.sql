@@ -60,12 +60,16 @@ create table if not exists "sprawy" (
   "data_utworzenia" TIMESTAMP NOT NULL,
   "czy_wyslana" BOOLEAN NOT NULL,
   "dane_osobowe" BIGINT NOT NULL,
-  "aktualna_decyzja" BIGINT NOT NULL,
+  "aktualna_decyzja" BIGINT,
   "czy_zakonczona" BOOLEAN NOT NULL,
   "przesylka" BIGINT,
   foreign key (dane_osobowe) references dane_osobowe(id),
   foreign key (aktualna_decyzja) references decyzje(id),
   foreign key (przesylka) references przesylki(id));
+
+insert into typy_dokumentu (name) values ('Dowód osobisty');
+insert into typy_dokumentu (name) values ('Prawo jazdy');
+insert into typy_dokumentu (name) values ('Paszport');
 
 # --- !Downs
 
