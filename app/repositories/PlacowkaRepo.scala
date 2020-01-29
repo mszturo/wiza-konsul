@@ -31,10 +31,9 @@ class PlacowkaRepo @Inject()
   }
 
 
-  def upsert(entity: Placowka): Future[Boolean] = db.run {
-    placowki
+  def upsert(entity: Placowka): Future[Option[Long]] = db.run {
+    (placowki returning placowki.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: Placowka): Future[Boolean] = db.run {

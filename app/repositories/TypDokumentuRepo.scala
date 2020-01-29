@@ -29,10 +29,9 @@ class TypDokumentuRepo @Inject()
   }
 
 
-  def upsert(entity: TypDokumentu): Future[Boolean] = db.run {
-    typyDokumentu
+  def upsert(entity: TypDokumentu): Future[Option[Long]] = db.run {
+    (typyDokumentu returning typyDokumentu.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: TypDokumentu): Future[Boolean] = db.run {

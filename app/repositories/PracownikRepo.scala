@@ -34,10 +34,9 @@ class PracownikRepo @Inject()
 
   private[repositories] lazy val pracownicy = TableQuery[PracownikTable]
 
-  def upsert(entity: Pracownik): Future[Boolean] = db.run {
-    pracownicy
+  def upsert(entity: Pracownik): Future[Option[Long]] = db.run {
+    (pracownicy returning pracownicy.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: Pracownik): Future[Boolean] = db.run {

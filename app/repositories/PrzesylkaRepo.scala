@@ -47,10 +47,9 @@ class PrzesylkaRepo @Inject()
   private[repositories] lazy val sprawy = sRepo.sprawy
   private[repositories] lazy val typyDokumentu = doRepo.typyDokumentu
 
-  def upsert(entity: Przesylka): Future[Boolean] = db.run {
-    przesylki
+  def upsert(entity: Przesylka): Future[Option[Long]] = db.run {
+    (przesylki returning przesylki.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: Przesylka): Future[Boolean] = db.run {

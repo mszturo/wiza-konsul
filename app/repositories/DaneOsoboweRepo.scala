@@ -50,10 +50,9 @@ class DaneOsoboweRepo @Inject()(
   private[repositories] lazy val typyDokumentu = diRepo.typyDokumentu
   private[repositories] lazy val dokumentyIdentyfikacyjne = diRepo.dokumentyIdentfikacyjne
 
-  def upsert(entity: DaneOsobowe): Future[Boolean] = db.run {
-    daneOsobowe
+  def upsert(entity: DaneOsobowe): Future[Option[Long]] = db.run {
+    (daneOsobowe returning daneOsobowe.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: DaneOsobowe): Future[Boolean] = db.run {
