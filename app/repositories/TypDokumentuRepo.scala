@@ -21,18 +21,16 @@ class TypDokumentuRepo @Inject()
   import profile.api._
 
   private[repositories] class TypDokumentuTable(tag: Tag) extends Table[TypDokumentuRow](tag, "typy_dokumentu") {
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def nazwa = column[String]("name")
 
     def * = (id, nazwa) <> (TypDokumentuRow.tupled, TypDokumentuRow.unapply)
   }
 
-
-  def upsert(entity: TypDokumentu): Future[Boolean] = db.run {
-    typyDokumentu
+  def upsert(entity: TypDokumentu): Future[Option[Long]] = db.run {
+    (typyDokumentu returning typyDokumentu.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: TypDokumentu): Future[Boolean] = db.run {

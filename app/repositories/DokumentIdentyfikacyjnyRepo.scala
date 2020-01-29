@@ -23,7 +23,7 @@ class DokumentIdentyfikacyjnyRepo @Inject()
 
   private[repositories] class DokumentIdentyfikacyjnyTable(tag: Tag) extends Table[DokumentIdentyfikacyjnyRow](tag, "dokumenty_identyfikacyjne") {
 
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def nrDokumentu = column[String]("nr_dokumentu")
 
@@ -37,10 +37,9 @@ class DokumentIdentyfikacyjnyRepo @Inject()
   private[repositories] lazy val dokumentyIdentfikacyjne = TableQuery[DokumentIdentyfikacyjnyTable]
   private[repositories] lazy val typyDokumentu = tdRepo.typyDokumentu
 
-  def upsert(entity: DokumentIdentyfikacyjny): Future[Boolean] = db.run {
-    dokumentyIdentfikacyjne
+  def upsert(entity: DokumentIdentyfikacyjny): Future[Option[Long]] = db.run {
+    (dokumentyIdentfikacyjne returning dokumentyIdentfikacyjne.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: DokumentIdentyfikacyjny): Future[Boolean] = db.run {

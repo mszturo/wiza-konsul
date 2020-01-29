@@ -2,7 +2,29 @@
 
 @layout(title) {
     <h1>@title</h1>
-    @for(sprawa <- sprawy) {
-        sprawa.trescSprawy
-    }
+    <table class="table">
+        <thead>
+            <tr>
+                <th class="col-xs-1">ID</th>
+                <th class="col-xs-6">Treść sprawy</th>
+                <th class="col-xs-2">Data utworzenia</th>
+                <th class="col-xs-3">Operacje</th>
+            </tr>
+        </thead>
+        <tbody>
+        @for(sprawa <- sprawy) {
+            <tr>
+                <td>@sprawa.id</td>
+                <td>@sprawa.trescSprawy</td>
+                <td>@sprawa.dataUtworzenia</td>
+                <td>
+                    <button class="btn btn-primary" onclick="location.href='@routes.HomeController.wydajDecyzje(sprawa.id)'">Decyzja</button>
+                    <button class="btn btn-secondary" onclick="location.href='@routes.HomeController.edytujSprawe(sprawa.id)'">Edytuj</button>
+                    <button class="btn btn-danger" onclick="location.href='@routes.HomeController.usunSprawe(sprawa.id)'">Usuń</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
 }

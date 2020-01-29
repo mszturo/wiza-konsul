@@ -25,7 +25,7 @@ class DecyzjaRepo @Inject()
 
   private[repositories] class DecyzjaTable(tag: Tag) extends Table[DecyzjaRow](tag, "decyzje") {
 
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def dataDecyzji = column[Date]("data_decyzji")
 
@@ -44,10 +44,8 @@ class DecyzjaRepo @Inject()
   private[repositories] lazy val decyzje = TableQuery[DecyzjaTable]
   private[repositories] lazy val pracownicy = pRepo.pracownicy
 
-  def upsert(entity: Decyzja): Future[Boolean] = db.run {
-    decyzje
-      .insertOrUpdate(entity.toRow)
-      .checkSingleRow
+  def upsert(entity: Decyzja): Future[Option[Long]] = db.run {
+    (decyzje returning decyzje.map(_.id)).insertOrUpdate(entity.toRow)
   }
 
   def delete(entity: Decyzja): Future[Boolean] = db.run {

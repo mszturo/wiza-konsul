@@ -71,6 +71,9 @@ insert into typy_dokumentu (name) values ('Dowód osobisty');
 insert into typy_dokumentu (name) values ('Prawo jazdy');
 insert into typy_dokumentu (name) values ('Paszport');
 
+insert into pracownicy (login, haslo, czy_kierownik) values ('admin', 'admin', 'true');
+insert into pracownicy (login, haslo, czy_kierownik) values ('pracownik', '123', 'false');
+
 # --- !Downs
 
 drop table "people" if exists;

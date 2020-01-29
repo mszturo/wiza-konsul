@@ -4,17 +4,17 @@
 
 # Home page
 GET     /                           controllers.HomeController.index(request: play.mvc.Http.Request)
-GET     /sprawy                     controllers.HomeController.pokazSprawy()
-GET     /sprawy/doUzupelnienia      controllers.HomeController.pokazSprawyDoUzupelnienia()
-GET     /sprawy/archiwalne          controllers.HomeController.pokazSprawyArchiwalne()
+GET     /sprawy                     controllers.HomeController.pokazSprawy(request: play.mvc.Http.Request)
+GET     /sprawy/doUzupelnienia      controllers.HomeController.pokazSprawyDoUzupelnienia(request: play.mvc.Http.Request)
+GET     /sprawy/archiwalne          controllers.HomeController.pokazSprawyArchiwalne(request: play.mvc.Http.Request)
 GET     /sprawy/dodaj               controllers.HomeController.dodajSprawe(request: play.mvc.Http.Request)
-GET     /sprawy/edytuj/:id          controllers.HomeController.edytujSprawe(id: Integer)
-GET     /sprawy/wydajDecyzje/:id    controllers.HomeController.wydajDecyzje(request: play.mvc.Http.Request, id: Integer)
-PUT     /sprawy/aktualizuj          controllers.HomeController.aktualizujSprawe()
+GET     /sprawy/edytuj/:id          controllers.HomeController.edytujSprawe(request: play.mvc.Http.Request, id: Long)
+GET     /sprawy/wydajDecyzje/:id    controllers.HomeController.wydajDecyzje(request: play.mvc.Http.Request, id: Long)
 POST    /login                      controllers.HomeController.zaloguj(request: play.mvc.Http.Request)
+GET     /logout                     controllers.HomeController.wyloguj(request: play.mvc.Http.Request)
 POST    /sprawy/zapiszDecyzje       controllers.HomeController.zapiszDecyzje(request: play.mvc.Http.Request, sprawaId: Long)
 POST    /sprawy/zapiszSprawe        controllers.HomeController.zapiszSprawe(request: play.mvc.Http.Request)
-DELETE  /sprawy/usunSprawe/:id      controllers.HomeController.usunSprawe(id: Integer)
+GET     /sprawy/usunSprawe/:id      controllers.HomeController.usunSprawe(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

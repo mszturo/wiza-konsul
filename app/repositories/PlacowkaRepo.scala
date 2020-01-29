@@ -21,7 +21,7 @@ class PlacowkaRepo @Inject()
 
   private[repositories] class PlacowkaTable(tag: Tag) extends Table[PlacowkaRow](tag, "placowki") {
 
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def nazwa = column[String]("nazwa")
 
@@ -30,11 +30,9 @@ class PlacowkaRepo @Inject()
     def * = (id, nazwa, maksSprawZagregowanych) <> (PlacowkaRow.tupled, PlacowkaRow.unapply)
   }
 
-
-  def upsert(entity: Placowka): Future[Boolean] = db.run {
-    placowki
+  def upsert(entity: Placowka): Future[Option[Long]] = db.run {
+    (placowki returning placowki.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: Placowka): Future[Boolean] = db.run {

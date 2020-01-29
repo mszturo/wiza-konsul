@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
 
 trait Repository[T] {
-  def upsert(entity: T): Future[Boolean]
+  def upsert(entity: T): Future[Option[Long]]
 
   def delete(entity: T): Future[Boolean]
 

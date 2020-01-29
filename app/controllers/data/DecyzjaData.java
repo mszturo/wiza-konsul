@@ -8,16 +8,16 @@ public class DecyzjaData {
     public DecyzjaData() {}
 
     @Constraints.Required
-    private RodzajDecyzji rodzajDecyzji;
+    private String rodzajDecyzji;
 
     @Constraints.Required
     private String uzasadnienieDecyzji;
 
-    public RodzajDecyzji getRodzajDecyzji() {
+    public String getRodzajDecyzji() {
         return rodzajDecyzji;
     }
 
-    public void setRodzajDecyzji(RodzajDecyzji rodzajDecyzji) {
+    public void setRodzajDecyzji(String rodzajDecyzji) {
         this.rodzajDecyzji = rodzajDecyzji;
     }
 

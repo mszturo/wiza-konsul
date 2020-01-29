@@ -26,7 +26,7 @@ class PrzesylkaRepo @Inject()
 
   private[repositories] class PrzesylkaTable(tag: Tag) extends Table[PrzesylkaRow](tag, "przesylki") {
 
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def dataPrzeslania = column[Timestamp]("data_przeslania")
 
@@ -47,10 +47,9 @@ class PrzesylkaRepo @Inject()
   private[repositories] lazy val sprawy = sRepo.sprawy
   private[repositories] lazy val typyDokumentu = doRepo.typyDokumentu
 
-  def upsert(entity: Przesylka): Future[Boolean] = db.run {
-    przesylki
+  def upsert(entity: Przesylka): Future[Option[Long]] = db.run {
+    (przesylki returning przesylki.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: Przesylka): Future[Boolean] = db.run {

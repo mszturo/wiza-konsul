@@ -3,6 +3,19 @@
 @import helper._
 
 @layout("Wydaj decyzję") {
+    <h1>Dane sprawy</h1>
+    <h3>Osoba składająca</h3>
+    <ul>
+        <li class="list-item">@sprawa.daneOsobowe.imie @sprawa.daneOsobowe.drugieImie @sprawa.daneOsobowe.nazwisko</li>
+        <li class="list-item">Data urodzenia: @sprawa.daneOsobowe.dataUrodzenia</li>
+        <li class="list-item">Miejsce urodzenia: @sprawa.daneOsobowe.miejsceUrodzenia</li>
+        <li class="list-item">PESEL: @sprawa.daneOsobowe.pesel</li>
+        <li class="list-item">@sprawa.daneOsobowe.dokumentIdentyfikacyjny.typDokumentu.nazwa : @sprawa.daneOsobowe.dokumentIdentyfikacyjny.nrDokumentu</li>
+    </ul>
+    <h3>Sprawa</h3>
+    <p>@sprawa.trescSprawy</p>
+
+    <h1>Wydaj decyzję</h1>
     @if(decyzjaForm.hasGlobalErrors) {
     <ul>
         @for(error <- decyzjaForm.globalErrors) {
@@ -14,7 +27,7 @@
     @form(action=routes.HomeController.zapiszDecyzje(sprawa.id)) {
         @CSRF.formField
 
-        @inputRadioGroup(decyzjaForm("rodzajDecyzji"), Seq("Pozytywna" -> "Pozytywna", "Negatywna" -> "Negatywna", "Do uzupełnienia" -> "Do uzupełnienia"))
+        @inputRadioGroup(decyzjaForm("rodzajDecyzji"), Seq("Pozytywna" -> "Pozytywna", "Negatywna" -> "Negatywna", "Do uzupełnienia" -> "Do uzupełnienia"), Symbol("class") -> "form-check", Symbol("_label") -> "Rodzaj decyzji")
         @textarea(decyzjaForm("uzasadnienieDecyzji"), Symbol("class") -> "form-control", Symbol("_label") -> "Uzasadnienie decyzji")
 
         <button class="btn btn-success">Wyślij</button>

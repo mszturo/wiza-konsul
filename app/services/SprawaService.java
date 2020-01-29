@@ -2,6 +2,7 @@ package services;
 
 import models.*;
 import repositories.*;
+import scala.None;
 import scala.Option;
 import scala.concurrent.Await;
 import scala.concurrent.ExecutionContext;
@@ -32,12 +33,43 @@ public class SprawaService {
     @Inject
     TypDokumentuRepo typDokumentuRepo;
 
+    @Inject
+    PracownikRepo pracownikRepo;
+
+    private static int DaneOsoboweMaxInt = 1;
+    private static int DokumentIdentyifkacyjnyMaxInt = 1;
+    private static int DecyzjaMaxInt = 1;
+
     public void dodajSprawe(Sprawa sprawa) {
+
         DaneOsobowe daneOsobowe = sprawa.daneOsobowe();
         DokumentIdentyfikacyjny dokumentIdentyfikacyjny = daneOsobowe.dokumentIdentyfikacyjny();
 
-        dokumentIdentyfikacyjnyRepo.upsert(dokumentIdentyfikacyjny);
-        daneOsoboweRepo.upsert(daneOsobowe);
+        List<Option<Object>> id = new ArrayList<>();
+
+        //dokumentIdentyfikacyjny.id_$eq(DokumentIdentyifkacyjnyMaxInt++);
+        //daneOsobowe.id_$eq(DaneOsoboweMaxInt++);
+        try {
+            Await.result(dokumentIdentyfikacyjnyRepo.upsert(dokumentIdentyfikacyjny)
+                    .map(val -> {id.add(val); return val;}, ExecutionContext.Implicits$.MODULE$.global()), Duration.Inf());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        if(!id.get(0).isEmpty())
+            dokumentIdentyfikacyjny.id_$eq((Long)id.get(0).get());
+
+        id.remove(0);
+        try {
+            Await.result(daneOsoboweRepo.upsert(daneOsobowe)
+                    .map(val -> {id.add(val); return val;}, ExecutionContext.Implicits$.MODULE$.global()), Duration.Inf());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        if(!id.get(0).isEmpty())
+            daneOsobowe.id_$eq((Long)id.get(0).get());
+
         sprawaRepo.upsert(sprawa);
     }
 
@@ -50,6 +82,17 @@ public class SprawaService {
             e.printStackTrace();
         }
         return sprawa.get(0);
+    }
+
+    public Option<Pracownik> getPracownik(int id) {
+        List<Option<Pracownik>> pracownik = new ArrayList<>();
+        Future<Option<Pracownik>> future = pracownikRepo.get(id).map(val -> {pracownik.add(val); return val;}, ExecutionContext.Implicits$.MODULE$.global());
+        try {
+            Await.result(future, Duration.Inf());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return pracownik.get(0);
     }
 
     public void usunSprawe(int id) {
@@ -88,7 +131,7 @@ public class SprawaService {
         } catch(Exception e) {
             e.printStackTrace();
         }
-        return sprawy.stream().filter(sprawa -> sprawa.aktualnaDecyzja() != null && sprawa.aktualnaDecyzja().rodzajDecyzji() == RodzajDecyzji.DoUzupelnienia()).collect(Collectors.toList());
+        return sprawy.stream().filter(sprawa -> !sprawa.aktualnaDecyzja().isEmpty() && sprawa.aktualnaDecyzja().get().rodzajDecyzji() == RodzajDecyzji.DoUzupelnienia()).collect(Collectors.toList());
     }
 
     public void dodajDecyzje(Decyzja decyzja, int sprawaId) {
@@ -97,11 +140,24 @@ public class SprawaService {
         Option<Sprawa> sprawaOption = getSprawa(sprawaId);
 
         if(!sprawaOption.isEmpty()) {
+//            decyzja.id_$eq(DecyzjaMaxInt++);
+            Option<Decyzja> decyzjaOption = Option.apply(decyzja);
             Sprawa sprawa = sprawaOption.get();
-            sprawa.aktualnaDecyzja_$eq(decyzja);
+            sprawa.aktualnaDecyzja_$eq(decyzjaOption);
             sprawa.czyZakonczona_$eq(czyZakonczona);
 
-            decyzjaRepo.upsert(decyzja);
+            List<Option<Object>> id = new ArrayList<>();
+
+            try {
+                Await.result(decyzjaRepo.upsert(decyzja)
+                        .map(val -> {id.add(val); return val;}, ExecutionContext.Implicits$.MODULE$.global()), Duration.Inf());
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+
+            if(!id.get(0).isEmpty())
+                decyzja.id_$eq((Long)id.get(0).get());
+
             sprawaRepo.upsert(sprawa);
         }
     }

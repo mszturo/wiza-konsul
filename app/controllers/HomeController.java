@@ -3,10 +3,9 @@ package controllers;
 import controllers.data.DecyzjaData;
 import controllers.data.LoginData;
 import controllers.data.SprawaData;
+import mappers.DecyzjaMapper;
 import mappers.SprawaMapper;
-import models.Pracownik;
-import models.Sprawa;
-import models.TypDokumentu;
+import models.*;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.mvc.Controller;
@@ -39,6 +38,11 @@ public class HomeController extends Controller {
     @Inject
     private SprawaMapper sprawaMapper;
 
+    @Inject
+    private DecyzjaMapper decyzjaMapper;
+
+    private FormFactory formFactory;
+
     private final Form<SprawaData> sprawaForm;
     private final Form<DecyzjaData> decyzjaForm;
     private final Form<LoginData> loginForm;
@@ -47,6 +51,7 @@ public class HomeController extends Controller {
 
     @Inject
     public HomeController(FormFactory formFactory, MessagesApi messagesApi) {
+        this.formFactory = formFactory;
         this.sprawaForm = formFactory.form(SprawaData.class);
         this.decyzjaForm = formFactory.form(DecyzjaData.class);
         this.loginForm = formFactory.form(LoginData.class);
@@ -70,14 +75,26 @@ public class HomeController extends Controller {
         Option<Pracownik> pracownik = loginService.findPracownik(loginData.getLogin(), loginData.getHaslo());
 
         if(pracownik.isEmpty()) {
-
+            return badRequest(views.html.index.render(form, request, messagesApi.preferred(request)));
         }
 
-        return ok(loginData.getLogin());
+        return redirect(routes.HomeController.pokazSprawy())
+                .addingToSession(request, "id", "" + pracownik.get().id())
+                .addingToSession(request, "czyKierownik", pracownik.get() instanceof Kierownik ? "True" : "False");
 
     }
 
+    public Result wyloguj(Http.Request request) {
+        return redirect(routes.HomeController.index())
+                .removingFromSession(request, "id")
+                .removingFromSession(request, "czyKierownik");
+    }
+
     public Result dodajSprawe(Http.Request request) {
+        if(!request.session().getOptional("id").isPresent()) {
+            return redirect(routes.HomeController.index());
+        }
+
         Messages messages = messagesApi.preferred(request);
         List<TypDokumentu> typyDokumentow = sprawaService.getTypyDokumentow();
         Seq<TypDokumentu> typy = CollectionConverters.IterableHasAsScala(typyDokumentow).asScala().toList();
@@ -97,45 +114,80 @@ public class HomeController extends Controller {
 
         SprawaData sprawaData = form.get();
         Sprawa sprawa = sprawaMapper.mapSprawa(sprawaData);
+
+        if(request.session().getOptional("sprawaId").isPresent()) {
+            Long sprawaId = Long.parseLong(request.session().getOptional("sprawaId").get());
+            Option<Sprawa> persistentSprawa = sprawaService.getSprawa(sprawaId.intValue());
+            if(!persistentSprawa.isEmpty())
+                sprawa = sprawaMapper.mapSprawa(sprawaData, persistentSprawa.get());
+        }
+
         sprawaService.dodajSprawe(sprawa);
 
-        return redirect(routes.HomeController.pokazSprawy());
+        return redirect(routes.HomeController.pokazSprawy()).removingFromSession(request, "sprawaId");
     }
 
-    public Result edytujSprawe(Integer id) {
-        return ok();
+    public Result edytujSprawe(Http.Request request, Long id) {
+        if(!request.session().getOptional("id").isPresent()) {
+            return redirect(routes.HomeController.index());
+        }
+
+        Option<Sprawa> sprawa = sprawaService.getSprawa(id.intValue());
+
+        if(sprawa.isEmpty())
+            return notFound();
+
+        Form<SprawaData> sprawaForm = formFactory.form(SprawaData.class).fill(sprawaMapper.mapSprawaData(sprawa.get()));
+
+        Messages messages = messagesApi.preferred(request);
+        List<TypDokumentu> typyDokumentow = sprawaService.getTypyDokumentow();
+        Seq<TypDokumentu> typy = CollectionConverters.IterableHasAsScala(typyDokumentow).asScala().toList();
+
+        return ok(views.html.createSprawa.render(sprawaForm, typy, request, messages)).addingToSession(request, "sprawaId", id.toString());
     }
 
-    public Result aktualizujSprawe() {
-        return ok();
-    }
+    public Result pokazSprawy(Http.Request request) {
+        if(!request.session().getOptional("id").isPresent()) {
+            return redirect(routes.HomeController.index());
+        }
 
-    public Result pokazSprawy() {
         List<Sprawa> sprawy = sprawaService.getSprawy();
 
         return ok(views.html.listaSpraw.render(sprawy, "Wszystkie sprawy"));
     }
 
-    public Result pokazSprawyArchiwalne() {
+    public Result pokazSprawyArchiwalne(Http.Request request) {
+        if(!request.session().getOptional("id").isPresent()) {
+            return redirect(routes.HomeController.index());
+        }
+
         List<Sprawa> sprawy = sprawaService.getArchiwalneSprawy();
 
         return ok(views.html.listaSpraw.render(sprawy, "Sprawy archiwalne"));
     }
 
-    public Result pokazSprawyDoUzupelnienia() {
+    public Result pokazSprawyDoUzupelnienia(Http.Request request) {
+        if(!request.session().getOptional("id").isPresent()) {
+            return redirect(routes.HomeController.index());
+        }
+
         List<Sprawa> sprawy = sprawaService.getSprawyDoUzupelnienia();
 
         return ok(views.html.listaSpraw.render(sprawy, "Sprawy do uzupełnienia"));
     }
 
-    public Result usunSprawe(Integer id) {
-        sprawaService.usunSprawe(id);
+    public Result usunSprawe(Long id) {
+        sprawaService.usunSprawe(id.intValue());
 
         return redirect(routes.HomeController.pokazSprawy());
     }
 
-    public Result wydajDecyzje(Http.Request request, Integer id) {
-        Option<Sprawa> sprawa = sprawaService.getSprawa(id);
+    public Result wydajDecyzje(Http.Request request, Long id) {
+        if(!request.session().getOptional("id").isPresent() && request.session().getOptional("czyKierownik").get().equals("False")) {
+            return redirect(routes.HomeController.pokazSprawy());
+        }
+
+        Option<Sprawa> sprawa = sprawaService.getSprawa(id.intValue());
 
         if(sprawa.isEmpty())
             return notFound();
@@ -155,11 +207,12 @@ public class HomeController extends Controller {
             return badRequest(views.html.wydajDecyzje.render(form, sprawa.get(), request, messagesApi.preferred(request)));
         }
 
-        DecyzjaData decyzjaData = form.get();
+        Pracownik pracownik = sprawaService.getPracownik(Integer.parseInt(request.session().getOptional("id").get())).get();
 
-//        sprawaService.dodajDecyzje(sprawaId, decyzja);
+        DecyzjaData decyzjaData = form.get();
+        Decyzja decyzja = decyzjaMapper.mapDecyzja(decyzjaData, (Kierownik) pracownik);
+        sprawaService.dodajDecyzje(decyzja, sprawaId.intValue());
 
         return redirect(routes.HomeController.pokazSprawy());
-        //return ok();
     }
 }

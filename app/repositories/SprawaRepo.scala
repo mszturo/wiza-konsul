@@ -25,7 +25,7 @@ class SprawaRepo @Inject()(
 
   private[repositories] class SprawaTable(tag: Tag) extends Table[SprawaRow](tag, "sprawy") {
 
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def zdjecie = column[String]("zdjecie")
 
@@ -64,10 +64,9 @@ class SprawaRepo @Inject()(
   private[repositories] lazy val typyDokumentu = doRepo.typyDokumentu
   private[repositories] lazy val decyzje = dRepo.decyzje
 
-  def upsert(entity: Sprawa): Future[Boolean] = db.run {
-    sprawy
+  def upsert(entity: Sprawa): Future[Option[Long]] = db.run {
+    (sprawy returning sprawy.map(_.id))
       .insertOrUpdate(entity.toRow)
-      .checkSingleRow
   }
 
   def delete(entity: Sprawa): Future[Boolean] = db.run {
