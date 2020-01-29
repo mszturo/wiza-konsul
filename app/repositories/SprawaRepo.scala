@@ -41,7 +41,7 @@ class SprawaRepo @Inject()(
     def daneOsoboweFK =
       foreignKey("DO_ID", daneOsoboweId, sprawy)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
-    def aktualnaDecyzjaId = column[Long]("aktualna_decyzja")
+    def aktualnaDecyzjaId = column[Option[Long]]("aktualna_decyzja")
 
     def aktualnaDecyzja =
       foreignKey("AD_ID", aktualnaDecyzjaId, decyzje)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
@@ -84,18 +84,20 @@ class SprawaRepo @Inject()(
       .on(_._2.dokumentIdentyfikacyjnyId === _.id)
       .join(typyDokumentu)
       .on(_._2.typDokumentuId === _.id)
-      .join(decyzje)
+      .joinLeft(decyzje)
       .on(_._1._1._1.aktualnaDecyzjaId === _.id)
-      .join(pracownicy)
-      .on(_._2.wydajacyId === _.id)
+      .joinLeft(pracownicy)
+      .on(_._2.map(_.wydajacyId) === _.id)
       .result
       .map(_.headOption.flatMap {
         case (((((s, dO), di), td), d), p) =>
-          p.toEntity match {
+          p.fold(
+            Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), None))
+          )(prac => prac.toEntity match {
             case k: Kierownik =>
-              Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.toEntity(k)))
-            case _ => None
-          }
+              Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.map(_.toEntity(k))))
+            case _ => None[Sprawa]
+          })
       })
   }
 
@@ -108,19 +110,20 @@ class SprawaRepo @Inject()(
         .on(_._2.dokumentIdentyfikacyjnyId === _.id)
         .join(typyDokumentu)
         .on(_._2.typDokumentuId === _.id)
-        .join(decyzje)
+        .joinLeft(decyzje)
         .on(_._1._1._1.aktualnaDecyzjaId === _.id)
-        .join(pracownicy)
-        .on(_._2.wydajacyId === _.id)
+        .joinLeft(pracownicy)
+        .on(_._2.map(_.wydajacyId) === _.id)
         .result
         .map(_.flatMap {
           case (((((s, dO), di), td), d), p) =>
-            p.toEntity match {
+            p.fold(
+              Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), None))
+            )(prac => prac.toEntity match {
               case k: Kierownik =>
-                Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.toEntity(k)))
-              case _ =>
-                None
-            }
+                Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.map(_.toEntity(k))))
+              case _ => None[Sprawa]
+            })
         })
     }
   }

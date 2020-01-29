@@ -12,7 +12,7 @@ class Sprawa(
   var dataUtworzenia: Timestamp,
   var czyWyslana: Boolean,
   var daneOsobowe: DaneOsobowe,
-  var aktualnaDecyzja: Decyzja,
+  var aktualnaDecyzja: Option[Decyzja],
   var czyZakonczona: Boolean
 ){
   def toRow: SprawaRow = SprawaRow(
@@ -23,7 +23,7 @@ class Sprawa(
     dataUtworzenia,
     czyWyslana,
     daneOsobowe.id,
-    aktualnaDecyzja.id,
+    aktualnaDecyzja.map(_.id),
     czyZakonczona,
     None)
 }
