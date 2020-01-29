@@ -72,10 +72,10 @@ class PrzesylkaRepo @Inject()
       .on(_._2.dokumentIdentyfikacyjnyId === _.id)
       .join(typyDokumentu)
       .on(_._2.typDokumentuId === _.id)
-      .join(decyzje)
+      .joinLeft(decyzje)
       .on(_._1._1._1._2.aktualnaDecyzjaId === _.id)
-      .join(pracownicy)
-      .on(_._2.wydajacyId === _.id)
+      .joinLeft(pracownicy)
+      .on(_._2.map(_.wydajacyId) === _.id)
       .result
       .map(_.headOption.groupBy(_._1)
         .map {
@@ -83,11 +83,14 @@ class PrzesylkaRepo @Inject()
             val sprawy = list
               .flatMap {
                 case ((((((_, s), dOs), di), td), d), prac) =>
-                  prac.toEntity match {
+                  prac.fold(
+                    Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), None))
+                  )(_.toEntity match {
                     case k: Kierownik =>
-                      Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), d.toEntity(k)))
-                    case _ => None
-                  }
+                      Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), d.map(_.toEntity(k))))
+                    case _ =>
+                      Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), None))
+                  })
               }.toList
             pr.toEntity(sprawy, pl.toEntity)
         }.headOption)
@@ -105,22 +108,25 @@ class PrzesylkaRepo @Inject()
       .on(_._2.dokumentIdentyfikacyjnyId === _.id)
       .join(typyDokumentu)
       .on(_._2.typDokumentuId === _.id)
-      .join(decyzje)
+      .joinLeft(decyzje)
       .on(_._1._1._1._2.aktualnaDecyzjaId === _.id)
-      .join(pracownicy)
-      .on(_._2.wydajacyId === _.id)
+      .joinLeft(pracownicy)
+      .on(_._2.map(_.wydajacyId) === _.id)
       .result
-      .map(_.groupBy(_._1)
+      .map(_.headOption.groupBy(_._1)
         .map {
           case (((((((pr, pl), _), _), _), _), _), list) =>
             val sprawy = list
               .flatMap {
                 case ((((((_, s), dOs), di), td), d), prac) =>
-                  prac.toEntity match {
+                  prac.fold(
+                    Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), None))
+                  )(_.toEntity match {
                     case k: Kierownik =>
-                      Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), d.toEntity(k)))
-                    case _ => None
-                  }
+                      Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), d.map(_.toEntity(k))))
+                    case _ =>
+                      Some(s.toEntity(dOs.toEntity(di.toEntity(td.toEntity)), None))
+                  })
               }.toList
             pr.toEntity(sprawy, pl.toEntity)
         })

@@ -19,6 +19,7 @@ class SprawaRepo @Inject()(
   (implicit ec: ExecutionContext)
   extends Repository[Sprawa] {
   private[repositories] lazy val dbConfig = dbConfigProvider.get[JdbcProfile]
+
   import dbConfig._
   import profile.api._
 
@@ -44,7 +45,7 @@ class SprawaRepo @Inject()(
     def aktualnaDecyzjaId = column[Option[Long]]("aktualna_decyzja")
 
     def aktualnaDecyzja =
-      foreignKey("AD_ID", aktualnaDecyzjaId, decyzje)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+      foreignKey("AD_ID", aktualnaDecyzjaId, decyzje)(_.id.?, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def czyZakonczona = column[Boolean]("czy_zakonczona")
 
@@ -93,10 +94,11 @@ class SprawaRepo @Inject()(
         case (((((s, dO), di), td), d), p) =>
           p.fold(
             Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), None))
-          )(prac => prac.toEntity match {
+          )(_.toEntity match {
             case k: Kierownik =>
               Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.map(_.toEntity(k))))
-            case _ => None[Sprawa]
+            case _ =>
+              Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), None))
           })
       })
   }
@@ -119,12 +121,13 @@ class SprawaRepo @Inject()(
           case (((((s, dO), di), td), d), p) =>
             p.fold(
               Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), None))
-            )(prac => prac.toEntity match {
+            )(_.toEntity match {
               case k: Kierownik =>
                 Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), d.map(_.toEntity(k))))
-              case _ => None[Sprawa]
+              case _ =>
+                Some(s.toEntity(dO.toEntity(di.toEntity(td.toEntity)), None))
             })
-        })
+        }.toList)
     }
   }
 }
