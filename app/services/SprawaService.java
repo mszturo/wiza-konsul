@@ -36,9 +36,9 @@ public class SprawaService {
     @Inject
     PracownikRepo pracownikRepo;
 
-    private static int DaneOsoboweMaxInt = 1;
-    private static int DokumentIdentyifkacyjnyMaxInt = 1;
-    private static int DecyzjaMaxInt = 1;
+//    private static int DaneOsoboweMaxInt = 1;
+//    private static int DokumentIdentyifkacyjnyMaxInt = 1;
+//    private static int DecyzjaMaxInt = 1;
 
     public void dodajSprawe(Sprawa sprawa) {
 
@@ -109,7 +109,7 @@ public class SprawaService {
         } catch(Exception e) {
             e.printStackTrace();
         }
-        return sprawy;
+        return sprawy.stream().filter(sprawa -> sprawa.czyZakonczona() == false).collect(Collectors.toList());
     }
 
     public List<Sprawa> getArchiwalneSprawy() {

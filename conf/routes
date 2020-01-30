@@ -8,6 +8,7 @@ GET     /sprawy                     controllers.HomeController.pokazSprawy(reque
 GET     /sprawy/doUzupelnienia      controllers.HomeController.pokazSprawyDoUzupelnienia(request: play.mvc.Http.Request)
 GET     /sprawy/archiwalne          controllers.HomeController.pokazSprawyArchiwalne(request: play.mvc.Http.Request)
 GET     /sprawy/dodaj               controllers.HomeController.dodajSprawe(request: play.mvc.Http.Request)
+GET     /sprawy/:id                 controllers.HomeController.wyswietlSprawe(request: play.mvc.Http.Request, id: Long)
 GET     /sprawy/edytuj/:id          controllers.HomeController.edytujSprawe(request: play.mvc.Http.Request, id: Long)
 GET     /sprawy/wydajDecyzje/:id    controllers.HomeController.wydajDecyzje(request: play.mvc.Http.Request, id: Long)
 POST    /login                      controllers.HomeController.zaloguj(request: play.mvc.Http.Request)

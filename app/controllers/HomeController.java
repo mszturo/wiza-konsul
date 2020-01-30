@@ -127,6 +127,15 @@ public class HomeController extends Controller {
         return redirect(routes.HomeController.pokazSprawy()).removingFromSession(request, "sprawaId");
     }
 
+    public Result wyswietlSprawe(Http.Request request, Long id) {
+        Option<Sprawa> sprawa = sprawaService.getSprawa(id.intValue());
+
+        if(sprawa.isEmpty())
+            return notFound();
+
+        return ok(views.html.wyswietlSprawe.render(sprawa.get(), request, messagesApi.preferred(request)));
+    }
+
     public Result edytujSprawe(Http.Request request, Long id) {
         if(!request.session().getOptional("id").isPresent()) {
             return redirect(routes.HomeController.index());
@@ -153,7 +162,9 @@ public class HomeController extends Controller {
 
         List<Sprawa> sprawy = sprawaService.getSprawy();
 
-        return ok(views.html.listaSpraw.render(sprawy, "Wszystkie sprawy"));
+        boolean czyKierownik = request.session().getOptional("czyKierownik").get().equals("True") ? true : false;
+
+        return ok(views.html.listaSpraw.render(sprawy, "Wszystkie sprawy", czyKierownik));
     }
 
     public Result pokazSprawyArchiwalne(Http.Request request) {
@@ -163,7 +174,9 @@ public class HomeController extends Controller {
 
         List<Sprawa> sprawy = sprawaService.getArchiwalneSprawy();
 
-        return ok(views.html.listaSpraw.render(sprawy, "Sprawy archiwalne"));
+        boolean czyKierownik = request.session().getOptional("czyKierownik").get().equals("True") ? true : false;
+
+        return ok(views.html.listaSpraw.render(sprawy, "Sprawy archiwalne", czyKierownik));
     }
 
     public Result pokazSprawyDoUzupelnienia(Http.Request request) {
@@ -173,7 +186,9 @@ public class HomeController extends Controller {
 
         List<Sprawa> sprawy = sprawaService.getSprawyDoUzupelnienia();
 
-        return ok(views.html.listaSpraw.render(sprawy, "Sprawy do uzupełnienia"));
+        boolean czyKierownik = request.session().getOptional("czyKierownik").get().equals("True") ? true : false;
+
+        return ok(views.html.listaSpraw.render(sprawy, "Sprawy do uzupełnienia", czyKierownik));
     }
 
     public Result usunSprawe(Long id) {
@@ -183,7 +198,7 @@ public class HomeController extends Controller {
     }
 
     public Result wydajDecyzje(Http.Request request, Long id) {
-        if(!request.session().getOptional("id").isPresent() && request.session().getOptional("czyKierownik").get().equals("False")) {
+        if(!request.session().getOptional("id").isPresent() || request.session().getOptional("czyKierownik").get().equals("False")) {
             return redirect(routes.HomeController.pokazSprawy());
         }
 
